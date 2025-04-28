@@ -2,3 +2,5 @@ Fasto/bin
 tests/bin
 obj
 doc
+**/*.asm
+# **/*-testresult
