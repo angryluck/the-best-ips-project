@@ -4,3 +4,8 @@ obj
 doc
 **/*.asm
 # **/*-testresult
+Fasto/Lexer.fs
+Fasto/Lexer.fsi
+Fasto/Parser.fs
+Fasto/Parser.fsi
+Fasto/Parser.fsyacc.output
