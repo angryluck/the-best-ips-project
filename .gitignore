@@ -3,7 +3,7 @@ tests/bin
 obj
 doc
 **/*.asm
-# **/*-testresult
+**/*-testresult
 Fasto/Lexer.fs
 Fasto/Lexer.fsi
 Fasto/Parser.fs
