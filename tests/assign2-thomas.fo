@@ -1,0 +1,23 @@
+fun int mul(int x, int y) = 
+  if x==0 then 0 
+  else if 0<x then y + mul(x-1,y) else
+  (mul(x+1,y) - y)
+
+fun int read_int(int d) = read(int)
+
+fun int diff_i([int] arr, int n, int i) =
+  let j = if i == 0 then n-1 else i-1 in
+  arr[i] - arr[j]
+
+fun int main() =
+  let n = read(int) in 
+  if n<0 then 
+    let tmp = write("Incorrect Input!") in 0
+  else if n == 0 then
+    let tmp = write("Incorrect Input!") in 0
+  else
+  let indices = iota(n) in
+  let arr = map(read_int,indices) in
+  let diffs = map(fn int (int i) => diff_i(arr, n, i), indices) in
+  let squares = map(fn int (int x) => mul(x,x), diffs) in
+  write(reduce(fn int (int x, int y) => x+y, 0, squares))
