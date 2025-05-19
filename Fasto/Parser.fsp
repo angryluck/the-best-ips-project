@@ -25,9 +25,9 @@ let parse_error_rich =
 //   TODO: project task 1 :
 //     - multiplication (*), division (/), numerical negation (~), 
 //       logical negation (not), logical and (&&), logical or (||),
-//       boolean literals (true, false)
+//       boolean literals (true, false) DONE!!!!!
 //     - add the required precedence and associativity rules for
-//       *, /, ~, not, &&, ||
+//       *, /, ~, not, &&, || DONE!!!!
 //     - generalize the syntax of let-expressions to allow
 //       multiple variable declarations
 //
@@ -41,17 +41,23 @@ let parse_error_rich =
 %token <char * Position> CHARLIT
 %token <string * Position> ID STRINGLIT
 //keywords
-%token <Position> BOOL CHAR ELSE FN FUN IF IN INT LET THEN TRUE
+%token <Position> BOOL CHAR ELSE FN FUN IF IN INT LET THEN TRUE NOT
 //specials
 %token <Position> IOTA LENGTH MAP READ REDUCE WRITE
 //symbols
-%token <Position> MINUS PLUS DEQ LTH
+%token <Position> MINUS PLUS DEQ LTH MULT DIV NEG AND OR
 %token <Position> COMMA SEMICOLON EQ ARROW LPAR RPAR LBRACKET RBRACKET
 %token <Position> LCURLY RCURLY EOF
 
+// Task 1
 %nonassoc ELSE IN
-%left DEQ LTH
+%left OR
+%left AND 
+%nonassoc NOT 
+%left LTH EQ DEQ
 %left PLUS MINUS
+%left MUL DIV
+%nonassoc NEG
 
 %start Prog
 %type <AbSyn.UntypedProg> Prog
@@ -96,6 +102,8 @@ Params : Type ID COMMA Params
 
 Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
     | CHARLIT        { Constant (CharVal (fst $1), snd $1) }
+    | TRUE           { Constant (BoolVal true, $1) }
+    | FALSE          { Constant (BoolVal false, $1) }
     | ID             { Var $1 }
     | STRINGLIT      { StringLit $1 }
     | LCURLY Exps RCURLY
@@ -104,8 +112,17 @@ Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
     | Exp MINUS Exp  { Minus($1, $3, $2) }
     | Exp DEQ   Exp  { Equal($1, $3, $2) }
     | Exp LTH   Exp  { Less ($1, $3, $2) }
+    | Exp AND   Exp  { And ($1, $3, $2) }
+    | Exp MUL   Exp  { Times ($1, $3, $2) }
+    | Exp DIV   Exp  { Divide ($1, $3, $2) }
+    | Exp OR    Exp  { Or ($1, $3, $2) }
+    | NOT   Exp { Not ($2, $1) }
+    | NEG   Exp  { Negate ($2, $1) }
+    | TRUE      { }
+
     | IF Exp THEN Exp ELSE Exp
                      { If ($2, $4, $6, $1) }
+
     | ID LPAR Exps RPAR
                      { Apply (fst $1, $3, snd $1) }
     | ID LPAR RPAR   { Apply (fst $1, [], snd $1) }
