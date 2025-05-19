@@ -1,5 +1,5 @@
 all:
-	dotnet build -v d Fasto
+	dotnet build -v n Fasto
 
 clean:
 	rm -rf Fasto/bin Fasto/obj
