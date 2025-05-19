@@ -357,11 +357,35 @@ let rec compileExp  (e      : TypedExp)
         in `e1 || e2` if the execution of `e1` will evaluate to `true` then
         the code of `e2` must not be executed. Similarly for `And` (&&).
   *)
-  | And (_, _, _) ->
-      failwith "Unimplemented code generation of &&"
+  | And (e1, e2, pos) ->
+      let t1 = newReg "and_L"
+      let t2 = newReg "and_R"
+      let code1 = compileExp e1 vtable t1
+      let code2 = compileExp e2 vtable t2
+      let endLabel = newLab "end"
+      [LI (place, 0)] @
+      code1 @
+      [BEQ (t1, Rzero, endLabel)] @
+      code2 @
+      [BEQ (t2, Rzero, endLabel) 
+      ; LI (place, 1) 
+      ; LABEL endLabel]
 
-  | Or (_, _, _) ->
-      failwith "Unimplemented code generation of ||"
+
+
+  | Or (e1, e2, pos) ->
+      let t1 = newReg "or_L"
+      let t2 = newReg "ord_R"
+      let code1 = compileExp e1 vtable t1
+      let code2 = compileExp e2 vtable t2
+      let endLabel = newLab "end"
+      [LI (place, 1)] @
+      code1 @
+      [BNE (t1, Rzero, endLabel)] @
+      code2 @
+      [BNE (t2, Rzero, endLabel) 
+      ; LI (place, 0) 
+      ; LABEL endLabel]
 
   (* Indexing:
      1. generate code to compute the index

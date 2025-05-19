@@ -84,7 +84,7 @@ let rec checkBinOp  (ftab : FunTable)
       reportTypeWrong "1st argument of binary operator" t t1 pos
     if t2 <> t then
       reportTypeWrong "2nd argument of binary operator" t t2 pos
-    (e1', e2')
+    e1', e2'
 
 (* Determine the type of an expression.  On the way, decorate each
    node in the syntax tree with inferred types.  The result consists
@@ -125,27 +125,37 @@ and checkExp  (ftab : FunTable)
         let (e1_dec, e2_dec) = checkBinOp ftab vtab (pos, Int, e1, e2)
         (Int, Minus (e1_dec, e2_dec, pos))
 
-    (* TODO project task 1:
+    (* TODO project task 1: DONEEE!!!!!
         Implement by pattern matching Plus/Minus above.
         See `AbSyn.fs` for the expression constructors of `Times`, ...
     *)
     | Times (e1, e2, pos) ->
-        failwith "Unimplemented type check of multiplication"
+        let (e1_dec, e2_dec) = checkBinOp ftab vtab (pos, Int, e1, e2)
+        (Int, Times (e1_dec, e2_dec, pos))
 
-    | Divide (_, _, _) ->
-        failwith "Unimplemented type check of division"
+    | Divide (e1, e2, pos) ->
+        let (e1_dec, e2_dec) = checkBinOp ftab vtab (pos, Int, e1, e2)
+        (Int, Divide (e1_dec, e2_dec, pos))
 
-    | And (_, _, _) ->
-        failwith "Unimplemented type check of &&"
+    | And (e1, e2, pos) ->
+        let (e1_dec, e2_dec) = checkBinOp ftab vtab (pos, Bool, e1, e2)
+        (Bool, And (e1_dec, e2_dec, pos))
 
-    | Or (_, _, _) ->
-        failwith "Unimplemented type check of ||"
+    | Or (e1, e2, pos) ->
+        let (e1_dec, e2_dec) = checkBinOp ftab vtab (pos, Bool, e1, e2)
+        (Bool, Or (e1_dec, e2_dec, pos))
 
-    | Not (_, _) ->
-        failwith "Unimplemented type check of not"
+    | Not (e, pos) ->
+        let (t, e') = checkExp ftab vtab e
+        match t with
+          | Bool -> (Bool, Not (e', pos))
+          | _ -> reportTypeWrongKind "argument of 'not'" "base" t pos
 
-    | Negate (_, _) ->
-        failwith "Unimplemented type check of negate"
+    | Negate (e, pos) ->
+        let (t, e') = checkExp ftab vtab e
+        match t with
+          | Int -> (Int, Negate (e', pos))
+          | _ -> reportTypeWrongKind "argument of ~ " "base" t pos
 
     (* The types for e1, e2 must be the same. The result is always a Bool. *)
     | Equal (e1, e2, pos) ->
