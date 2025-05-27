@@ -234,7 +234,7 @@ let rec compileExp  (e      : TypedExp)
       let code2 = compileExp e2 vtable t2
       code1 @ code2 @ [SUB (place,t1,t2)]
 
-  (* TODO project task 1:
+  (* TODO project task 1: DONEEEE!!!!!!
      Look in `AbSyn.fs` for the expression constructors `Times`, ...
      `Times` is very similar to `Plus`/`Minus`.
      For `Divide`, you may ignore division by zero for a quick first
@@ -247,16 +247,22 @@ let rec compileExp  (e      : TypedExp)
       let code1 = compileExp e1 vtable t1
       let code2 = compileExp e2 vtable t2
       code1 @ code2 @ [MUL (place,t1,t2)]
-      // failwith "Unimplemented code generation of multiplication"
 
   | Divide (e1, e2, pos) ->
       let t1 = newReg "divide_L"
       let t2 = newReg "divide_R"
       let code1 = compileExp e1 vtable t1
       let code2 = compileExp e2 vtable t2
-      // failwith "Unimplemented code generation of multiplication"
-      // TODO: Divide by zero!
-      code1 @ code2 @ [DIV (place,t1,t2)]
+      let noerrorLabel = newLab "noerror"
+      let line = fst pos
+      code1 @ code2 @ 
+        [ BNE (Rzero, t2, noerrorLabel) ;
+          LI (Ra0, line);
+          LA (Ra1, "m.DivZero");
+          J "p.RuntimeError";
+          LABEL noerrorLabel;
+          DIV (place, t1, t2)
+        ]
 
   | Not (e, pos) ->
       let t = newReg "not"
@@ -370,6 +376,7 @@ let rec compileExp  (e      : TypedExp)
       [BEQ (t2, Rzero, endLabel) 
       ; LI (place, 1) 
       ; LABEL endLabel]
+
 
 
 

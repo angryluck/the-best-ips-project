@@ -1,0 +1,4 @@
+fun int main() =
+  let num = read(int) in
+  let den = read(int) in
+  write(num/den)
