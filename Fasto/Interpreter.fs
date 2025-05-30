@@ -293,11 +293,11 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
         match countExp with
         | IntVal n when n >= 0 ->
             let v = evalExp (elemExp, vtab, ftab)
-            ArrayVal (List.init n (fun _ -> v), valueType v)
+            ArrayVal (List.replicate n v, valueType v)
         | IntVal n ->
             raise (MyError (sprintf "replicate: size must be >= 0 (got %d)" n, pos))
-        | other ->
-            reportWrongType "first argument of \"replicate\"" Int other pos
+        | otherwise ->
+            reportWrongType "first argument of \"replicate\"" Int otherwise pos
 
 
   (* TODO project task 2: `filter(p, arr)`
@@ -320,8 +320,8 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
                 | other         -> reportWrongType "result of predicate in \"filter\"" Bool other pos
               ) elements []
             ArrayVal(filteredList, elementType)
-        | other -> 
-            reportNonArray "argument of \"filter\"" other pos
+        | otherwise -> 
+            reportNonArray "argument of \"filter\"" otherwise pos
 
   (* TODO project task 2: `scan(f, ne, arr)`
      Implementation similar to reduce, except that it produces an array
@@ -343,8 +343,8 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
             ArrayVal(List.rev revOut, elementType)
         | ArrayVal(_, elementType) ->
             reportWrongType "first argument of \"scan\"" elementType neVal pos
-        | other ->
-            reportNonArray "third argument of \"scan\"" other pos
+        | otherwise ->
+            reportNonArray "third argument of \"scan\"" otherwise pos
 
   | Read (t,p) ->
         let str = Console.ReadLine()

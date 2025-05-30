@@ -590,8 +590,94 @@ let rec compileExp  (e      : TypedExp)
         If `n` is less than `0` then remember to terminate the program with
         an error -- see implementation of `iota`.
   *)
-  | Replicate (_, _, _, _) ->
-      failwith "Unimplemented code generation of replicate"
+  | Replicate (n_exp, a_exp, tp, (line, _)) ->
+      let size_reg = newReg "size"
+      let a_reg = newReg "a"
+
+      let loop_beg = newLab "loop_beg"
+      let loop_end = newLab "loop_end"
+      let n_code = compileExp n_exp vtable size_reg
+      let a_code = compileExp a_exp vtable a_reg
+
+      // Jump away if n too small, TODO:
+      let safe_lab = newLab "safe"
+      let checksize = [ BGE (size_reg, Rzero, safe_lab)
+                      ; LI (Ra0, line)
+                      ; LA (Ra1, "m.BadSize")
+                      ; J "p.RuntimeError"
+                      ; LABEL (safe_lab)
+                      ]
+
+      let addr_reg = newReg "addr"
+      let i_reg = newReg "i"
+      let init_regs = [ ADDI (addr_reg, place, 4)
+                      ; MV (i_reg, Rzero) ]
+
+      let loop_header = [ LABEL (loop_beg)
+                        ; BGE (i_reg, size_reg, loop_end)
+                        ]
+      (* iota is just 'arr[i] = i'.  arr[i] is addr_reg. *)
+      let loop_replicate   = [ SW (a_reg, addr_reg, 0) ]
+      let loop_footer = [ ADDI (addr_reg, addr_reg, 4)
+                        ; ADDI (i_reg, i_reg, 1)
+                        ; J loop_beg
+                        ; LABEL loop_end
+                        ]
+
+ 
+
+ 
+
+
+      // let arr_reg  = newReg "arr"   (* address of array *)
+      // // let size_reg = newReg "size"  (* size of input array *)
+      // let i_reg    = newReg "ind_var"   (* loop counter *)
+      // let a_reg    = newReg "a"
+      // // let tmp_reg  = newReg "tmp"   (* several purposes *)
+      // let loop_beg = newLab "loop_beg"
+      // let loop_end = newLab "loop_end"
+
+      // let a_code = compileExp a_exp vtable a_reg
+      // let size_code = compileExp n_exp vtable size_reg
+      // let i_reg = [ LW(arr_reg, 0) ]
+
+ 
+
+
+
+      (* Compile initial value into place (will be updated below) *)
+      // let acc_code = compileExp acc_exp vtable place
+
+      (* Set arr_reg to address of first element instead. *)
+      (* Set i_reg to 0. While i < size_reg, loop. *)
+      (* Run a loop.  Keep jumping back to loop_beg until it is not the
+         case that i_reg < size_reg, and then jump to loop_end. *)
+      // let loop_beg = newLab "loop_beg"
+      // let loop_end = newLab "loop_end"
+      // let loop_header = [ LABEL (loop_beg)
+      //                   ; BGE (i_reg, size_reg, loop_end)
+      //                   ]
+      // (* iota is just 'arr[i] = i'.  arr[i] is addr_reg. *)
+      // let loop_replicate = [ SW (i_reg, addr_reg, 0) ]
+      // let loop_footer = [ ADDI (addr_reg, addr_reg, 4)
+      //                   ; ADDI (i_reg, i_reg, 1)
+      //                   ; J loop_beg
+      //                   ; LABEL loop_end
+      //                   ]
+      n_code
+       @ checksize
+       @ dynalloc (size_reg, place, Int)
+       @ init_regs
+       @ loop_header
+       @ loop_replicate
+       @ loop_footer
+
+
+
+
+    // let loop_beg = newLab "loop_beg"
+    // let loop_end = newLab "loop_end"
+    //   failwith "Unimplemented code generation of replicate"
 
   (* TODO project task 2: see also the comment to replicate.
      (a) `filter(f, arr)`:  has some similarity with the implementation of map.
