@@ -302,8 +302,14 @@ and checkExp  (ftab : FunTable)
         - assuming `a` is of type `t` the result type
           of replicate is `[t]`
     *)
-    | Replicate (_, _, _, _) ->
-        failwith "Unimplemented type check of replicate"
+    | Replicate (n_exp, a_exp, _, pos) ->
+        let  (n_type, n_exp_dec) = checkExp ftab vtab n_exp
+        if n_type <> Int then 
+          reportTypeWrong "argument of replicate" Int n_type pos
+        else
+        let (a_type, a_exp_dec) = checkExp ftab vtab a_exp
+        (Array a_type, Replicate (n_exp_dec,a_exp_dec, a_type, pos))
+        // failwith "Unimplemented type check of replicate"
 
     (* TODO project task 2: Hint for `filter(f, arr)`
         Look into the type-checking lecture slides for the type rule of `map`
@@ -314,8 +320,36 @@ and checkExp  (ftab : FunTable)
             - `arr` should be of type `[ta]`
             - the result of filter should have type `[ta]`
     *)
-    | Filter (_, _, _, _) ->
-        failwith "Unimplemented type check of filter"
+    | Filter (f, arr_exp, _, pos) ->
+        let (arr_type, arr_exp_dec) = checkExp ftab vtab arr_exp
+        let elem_type =
+            match arr_type with
+              | Array t -> t
+              | _ -> reportTypeWrongKind "second argument of filter" "array" arr_type pos
+        // let (f', f_res_type, f_arg_type) = skid 
+
+        let (f', f_arg_type) =
+            match checkFunArg ftab vtab pos f with
+              | (f', Bool, [a1]) -> (f',  a1)
+              | (f', res, [a1]) -> reportTypeWrongKind "function not bool" "function" res pos
+              | (_,res, args) -> reportArityWrong "first argument of map" 1 (args,res) pos
+          
+        if elem_type <> f_arg_type then
+          reportTypesDifferent "function-argument and array-element types in replicate"
+                               f_arg_type elem_type pos
+        (Array f_arg_type, Map (f', arr_exp_dec, elem_type, f_arg_type, pos))
+
+        // let (f', f_res_type, f_arg_type) = checkFunArg ftab vtab pos f
+        // match (f_res_type, f_arg_type) with 
+        //   | (Bool, [elem_type]) -> (f', res)
+        //   | _ -> failwith "u shit"
+        // if f_res_type <> Bool then reportTypeWrongKind "ret val of filter not bool" "function" f_res_type pos else
+        // if f_arg_type <> elem_type then reportTypeWrongKind "arg val of function filter" "function" f_arg_type pos else
+        //     // match checkFunArg ftab vtab pos f with
+        //     //   | (f', res, [a1]) -> (f', res, a1)
+        //     //   | (_, res, args) ->
+        //     //        reportArityWrong "first argument of map" 1 (args,res) pos
+        // failwith "Unimplemented type check of filter"
 
     (* TODO project task 2: `scan(f, ne, arr)`
         Hint: Implementation is very similar to `reduce(f, ne, arr)`.
@@ -323,8 +357,35 @@ and checkExp  (ftab : FunTable)
               scan's return type is the same as the type of `arr`,
               while reduce's return type is that of an element of `arr`).
     *)
-    | Scan (_, _, _, _, _) ->
-        failwith "Unimplemented type check of scan"
+    | Scan (f, e_exp, arr_exp, _, pos) ->
+        let (e_type  , e_dec  ) = checkExp ftab vtab e_exp
+        let (arr_type, arr_dec) = checkExp ftab vtab arr_exp
+        let elem_type =
+            match arr_type with
+              | Array t -> t
+              | _ -> reportTypeWrongKind "third argument of reduce" "array" arr_type pos
+        let (f', f_argres_type) =
+            match checkFunArg ftab vtab pos f with
+              | (f', res, [a1; a2]) ->
+                  if a1 <> a2 then
+                     reportTypesDifferent "argument types of operation in reduce"
+                                          a1 a2 pos
+                  if res <> a1 then
+                     reportTypesDifferent "argument and return type of operation in reduce"
+                                          a1 res pos
+                  (f', res)
+              | (_, res, args) ->
+                  reportArityWrong "operation in reduce" 2 (args,res) pos
+        if elem_type <> f_argres_type then
+          reportTypesDifferent "operation and array-element types in reduce"
+                               f_argres_type elem_type pos
+        if e_type <> f_argres_type then
+          reportTypesDifferent "operation and start-element types in scan"
+                               f_argres_type e_type pos
+        (Array f_argres_type, Scan (f', e_dec, arr_dec, elem_type, pos))
+
+
+        // failwith "Unimplemented type check of scan"
 
 and checkFunArg  (ftab : FunTable)
                  (vtab : VarTable)

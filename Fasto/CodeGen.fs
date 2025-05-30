@@ -616,7 +616,6 @@ let rec compileExp  (e      : TypedExp)
       let loop_header = [ LABEL (loop_beg)
                         ; BGE (i_reg, size_reg, loop_end)
                         ]
-      (* iota is just 'arr[i] = i'.  arr[i] is addr_reg. *)
       let loop_replicate   = [ SW (a_reg, addr_reg, 0) ]
       let loop_footer = [ ADDI (addr_reg, addr_reg, 4)
                         ; ADDI (i_reg, i_reg, 1)
@@ -625,26 +624,6 @@ let rec compileExp  (e      : TypedExp)
                         ]
 
  
-
- 
-
-
-      // let arr_reg  = newReg "arr"   (* address of array *)
-      // // let size_reg = newReg "size"  (* size of input array *)
-      // let i_reg    = newReg "ind_var"   (* loop counter *)
-      // let a_reg    = newReg "a"
-      // // let tmp_reg  = newReg "tmp"   (* several purposes *)
-      // let loop_beg = newLab "loop_beg"
-      // let loop_end = newLab "loop_end"
-
-      // let a_code = compileExp a_exp vtable a_reg
-      // let size_code = compileExp n_exp vtable size_reg
-      // let i_reg = [ LW(arr_reg, 0) ]
-
- 
-
-
-
       (* Compile initial value into place (will be updated below) *)
       // let acc_code = compileExp acc_exp vtable place
 
