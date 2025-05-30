@@ -73,9 +73,9 @@ let keyword (s, pos) =
        | "reduce"       -> Parser.REDUCE pos
        | "read"         -> Parser.READ pos
        | "write"        -> Parser.WRITE pos 
-      //  | "replicate"    -> Parser.REPLICATE pos
-      //  | "filter"       -> Parser.FILTER pos
-      //  | "scan"         -> Parser.SCAN pos 
+       | "replicate"    -> Parser.REPLICATE pos
+       | "filter"       -> Parser.FILTER pos
+       | "scan"         -> Parser.SCAN pos 
        | _              -> Parser.ID (s, pos)
 }
 

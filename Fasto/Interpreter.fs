@@ -288,8 +288,17 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
          the value of `a`; otherwise raise an error (containing
          a meaningful message).
   *)
-  | Replicate (_, _, _, _) ->
-        failwith "Unimplemented interpretation of replicate"
+  | Replicate (lenExp, elemExp, _, pos) ->
+        let lenV = evalExp (lenExp, vtab, ftab)
+        match lenV with
+        | IntVal k when k >= 0 ->
+            let v = evalExp (elemExp, vtab, ftab)
+            ArrayVal (List.init k (fun _ -> v), valueType v)
+        | IntVal k ->
+            raise (MyError (sprintf "replicate: size must be >= 0 (got %d)" k, pos))
+        | other ->
+            reportWrongType "first argument of \"replicate\"" Int other pos
+
 
   (* TODO project task 2: `filter(p, arr)`
        pattern match the implementation of map:
@@ -299,15 +308,43 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
          that the return value is a boolean at all);
        - create an `ArrayVal` from the (list) result of the previous step.
   *)
-  | Filter (_, _, _, _) ->
-        failwith "Unimplemented interpretation of filter"
+  | Filter (predArg, arrexp, _, pos) ->
+        let arrV = evalExp (arrexp, vtab, ftab)
+        match arrV with
+        | ArrayVal(elements, elementType) ->
+            let filteredList = 
+              List.foldBack (fun x acc ->
+                match evalFunArg(predArg, vtab, ftab, pos, [x]) with
+                | BoolVal true  -> x :: acc
+                | BoolVal false -> acc 
+                | other         -> reportWrongType "result of predicate in \"filter\"" Bool other pos
+              ) elements []
+            ArrayVal(filteredList, elementType)
+        | other -> 
+            reportNonArray "argument of \"filter\"" other pos
 
   (* TODO project task 2: `scan(f, ne, arr)`
      Implementation similar to reduce, except that it produces an array
      of the same type and length to the input array `arr`.
   *)
-  | Scan (_, _, _, _, _) ->
-        failwith "Unimplemented interpretation of scan"
+  | Scan (predArg, seedExp, arrexp, _, pos) ->
+        let seedV = evalExp (seedExp, vtab, ftab)
+        let arrV  = evalExp (arrexp, vtab, ftab)
+        match arrV with
+        | ArrayVal(elements, elementType) when valueType seedV = elementType ->
+            let (revOut, _) =
+              List.fold (fun (outs, acc) x ->
+                  let acc' =
+                    match evalFunArg(predArg, vtab, ftab, pos, [acc; x]) with
+                    | v when valueType v = elementType -> v
+                    | other -> reportWrongType "result of function in \"scan\"" elementType other pos
+                  (acc' :: outs, acc')
+               ) ([], seedV) elements
+            ArrayVal(List.rev revOut, elementType)
+        | ArrayVal(_, elementType) ->
+            reportWrongType "first argument of \"scan\"" elementType seedV pos
+        | other ->
+            reportNonArray "third argument of \"scan\"" other pos
 
   | Read (t,p) ->
         let str = Console.ReadLine()

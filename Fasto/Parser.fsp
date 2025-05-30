@@ -142,8 +142,10 @@ Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
                      { Iota ($3, $1) }
     | REPLICATE LPAR Exp COMMA Exp RPAR
                      { Replicate ($3, $5, (), $1) }
-    | FILTER LPAR Exp COMMA Exp RPAR
-                     { Filter ($) }                 
+    | FILTER LPAR FunArg COMMA Exp RPAR
+                     { Filter ($3, $5, (), $1) }    
+    | SCAN LPAR FunArg COMMA Exp COMMA Exp RPAR
+                     { Scan ($3, $5, $7, (), $1)}             
     | LENGTH LPAR Exp RPAR
                      { Length ($3, (), $1) }
     | MAP LPAR FunArg COMMA Exp RPAR
