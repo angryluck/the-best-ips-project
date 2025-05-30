@@ -288,14 +288,14 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
          the value of `a`; otherwise raise an error (containing
          a meaningful message).
   *)
-  | Replicate (lenExp, elemExp, _, pos) ->
-        let lenV = evalExp (lenExp, vtab, ftab)
-        match lenV with
-        | IntVal k when k >= 0 ->
+  | Replicate (countExp, elemExp, _, pos) ->
+        let countExp = evalExp (countExp, vtab, ftab)
+        match countExp with
+        | IntVal n when n >= 0 ->
             let v = evalExp (elemExp, vtab, ftab)
-            ArrayVal (List.init k (fun _ -> v), valueType v)
-        | IntVal k ->
-            raise (MyError (sprintf "replicate: size must be >= 0 (got %d)" k, pos))
+            ArrayVal (List.init n (fun _ -> v), valueType v)
+        | IntVal n ->
+            raise (MyError (sprintf "replicate: size must be >= 0 (got %d)" n, pos))
         | other ->
             reportWrongType "first argument of \"replicate\"" Int other pos
 
@@ -308,13 +308,13 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
          that the return value is a boolean at all);
        - create an `ArrayVal` from the (list) result of the previous step.
   *)
-  | Filter (predArg, arrexp, _, pos) ->
-        let arrV = evalExp (arrexp, vtab, ftab)
-        match arrV with
+  | Filter (farg, arrexp, _, pos) ->
+        let arrVal = evalExp (arrexp, vtab, ftab)
+        match arrVal with
         | ArrayVal(elements, elementType) ->
             let filteredList = 
               List.foldBack (fun x acc ->
-                match evalFunArg(predArg, vtab, ftab, pos, [x]) with
+                match evalFunArg(farg, vtab, ftab, pos, [x]) with
                 | BoolVal true  -> x :: acc
                 | BoolVal false -> acc 
                 | other         -> reportWrongType "result of predicate in \"filter\"" Bool other pos
@@ -327,22 +327,22 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
      Implementation similar to reduce, except that it produces an array
      of the same type and length to the input array `arr`.
   *)
-  | Scan (predArg, seedExp, arrexp, _, pos) ->
-        let seedV = evalExp (seedExp, vtab, ftab)
-        let arrV  = evalExp (arrexp, vtab, ftab)
-        match arrV with
-        | ArrayVal(elements, elementType) when valueType seedV = elementType ->
+  | Scan (farg, ne, arrexp, _, pos) ->
+        let neVal = evalExp (ne, vtab, ftab)
+        let arrVal = evalExp (arrexp, vtab, ftab)
+        match arrVal with
+        | ArrayVal(elements, elementType) when valueType neVal = elementType ->
             let (revOut, _) =
               List.fold (fun (outs, acc) x ->
                   let acc' =
-                    match evalFunArg(predArg, vtab, ftab, pos, [acc; x]) with
+                    match evalFunArg(farg, vtab, ftab, pos, [acc; x]) with
                     | v when valueType v = elementType -> v
                     | other -> reportWrongType "result of function in \"scan\"" elementType other pos
                   (acc' :: outs, acc')
-               ) ([], seedV) elements
+               ) ([], neVal) elements
             ArrayVal(List.rev revOut, elementType)
         | ArrayVal(_, elementType) ->
-            reportWrongType "first argument of \"scan\"" elementType seedV pos
+            reportWrongType "first argument of \"scan\"" elementType neVal pos
         | other ->
             reportNonArray "third argument of \"scan\"" other pos
 
