@@ -335,9 +335,9 @@ and checkExp  (ftab : FunTable)
               | (_,res, args) -> reportArityWrong "first argument of map" 1 (args,res) pos
           
         if elem_type <> f_arg_type then
-          reportTypesDifferent "function-argument and array-element types in replicate"
-                               f_arg_type elem_type pos
-        (Array f_arg_type, Map (f', arr_exp_dec, elem_type, f_arg_type, pos))
+          reportTypesDifferent "function-argument and array-element types in replicate" f_arg_type elem_type pos
+
+        (Array f_arg_type, Filter (f', arr_exp_dec, elem_type, pos))
 
         // let (f', f_res_type, f_arg_type) = checkFunArg ftab vtab pos f
         // match (f_res_type, f_arg_type) with 
