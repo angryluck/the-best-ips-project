@@ -22,39 +22,59 @@ let rec copyConstPropFoldExp (vtable : VarTable)
         (* Copy propagation is handled entirely in the following three
         cases for variables, array indexing, and let-bindings. *)
         | Var (name, pos) ->
+            match SymTab.lookup name vtable with
+                | None -> Var (name, pos)
+                | Some (ConstProp value) ->  Constant (value, pos)
+                | Some (VarProp newname) -> Var (newname, pos)
             (* TODO project task 3:
                 Should probably look in the symbol table to see if
                 a binding corresponding to the current variable `name`
                 exists and if so, it should replace the current expression
                 with the variable or constant to be propagated.
             *)
-            failwith "Unimplemented copyConstPropFold for Var"
+            // failwith "Unimplemented copyConstPropFold for Var"
         | Index (name, ei, t, pos) ->
+            let ei' = copyConstPropFoldExp vtable ei
+            match SymTab.lookup name vtable with
+                | None -> Index (name, ei', t, pos)
+                // Idk if it is even valid to bind an array to a constant...
+                | Some (ConstProp value) -> 
+                    match value, ei' with
+                        | ArrayVal (list, _), Constant (IntVal i, _) -> 
+                            Constant (list[i], pos)
+                        | _ -> Index (name, ei', t, pos)
+                | Some (VarProp newname) -> Index (newname, ei', t, pos)
             (* TODO project task 3:
                 Should probably do the same as the `Var` case, for
                 the array name, and optimize the index expression `ei` as well.
             *)
-            failwith "Unimplemented copyConstPropFold for Index"
+            // failwith "Unimplemented copyConstPropFold for Index"
         | Let (Dec (name, ed, decpos), body, pos) ->
             let ed' = copyConstPropFoldExp vtable ed
             match ed' with
-                | Var (_, _) ->
+                | Var (newname, pos) ->
+                    let vtable' = SymTab.bind name (VarProp newname) vtable
+                    copyConstPropFoldExp vtable' body
                     (* TODO project task 3:
                         Hint: I have discovered a variable-copy statement `let x = a`.
                               I should probably record it in the `vtable` by
                               associating `x` with a variable-propagatee binding,
                               and optimize the `body` of the let.
                     *)
-                    failwith "Unimplemented copyConstPropFold for Let with Var"
-                | Constant (_, _) ->
+                    // failwith "Unimplemented copyConstPropFold for Let with Var"
+                | Constant (v, pos) ->
+                    let vtable' = SymTab.bind name (ConstProp v) vtable
+                    copyConstPropFoldExp vtable' body
                     (* TODO project task 3:
                         Hint: I have discovered a constant-copy statement `let x = 5`.
                               I should probably record it in the `vtable` by
                               associating `x` with a constant-propagatee binding,
                               and optimize the `body` of the let.
                     *)
-                    failwith "Unimplemented copyConstPropFold for Let with Constant"
-                | Let (_, _, _) ->
+                    // failwith "Unimplemented copyConstPropFold for Let with Constant"
+                | Let (x, y, z) ->
+                    // FIX: TODO fix this
+                    Let (x,y,z)
                     (* TODO project task 3:
                         Hint: this has the structure
                                 `let y = (let x = e1 in e2) in e3`
@@ -68,7 +88,7 @@ let rec copyConstPropFoldExp (vtable : VarTable)
                         but beware that x might also occur in e3, in the
                         original expression.
                     *)
-                    failwith "Unimplemented copyConstPropFold for Let with Let"
+                    // failwith "Unimplemented copyConstPropFold for Let with Let"
                 | _ -> (* Fallthrough - for everything else, do nothing *)
                     let body' = copyConstPropFoldExp vtable body
                     Let (Dec (name, ed', decpos), body', pos)
