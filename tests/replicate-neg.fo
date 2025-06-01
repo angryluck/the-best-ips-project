@@ -1,0 +1,4 @@
+fun int write_int(int x) = write(x)
+
+fun [int] main() =
+  map(write_int, replicate(~1, 42))

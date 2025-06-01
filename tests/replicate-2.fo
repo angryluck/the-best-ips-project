@@ -1,0 +1,12 @@
+fun int write_int(int x) = write(x)
+fun char write_char(char x) = write(x)
+fun bool write_bool(bool x) = write(x)
+
+fun int main() =
+  let tmp = map(write_int, replicate(7,43)) in
+  let tmp = map(write_bool, replicate(3,true)) in
+  let tmp = map(write_bool, replicate(2, false)) in
+  let tmp = map(write_char, replicate(4,'a')) in
+  let tmp = map(write_char, replicate(0,'k')) in
+  let tmp = write(replicate(5,'x')) in
+  0
