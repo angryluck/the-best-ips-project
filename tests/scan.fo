@@ -6,3 +6,4 @@ fun [int] main() =
   let a = {1, 2, 3} in
   let b = scan(incr, 0, a) in
   map(writeInt, b)
+

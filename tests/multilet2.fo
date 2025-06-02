@@ -1,0 +1,15 @@
+fun int multilet_case() =
+  let n = read(int); x = n+n; y = x-1
+  in write(n * y)
+
+fun int main() =
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  let tmp = multilet_case() in
+  multilet_case()

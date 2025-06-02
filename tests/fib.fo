@@ -3,6 +3,17 @@ fun int fibo(int n) =
   else if n == 1 then 1
   else fibo(n - 1) + fibo(n - 2)
 
-fun int main() =
+fun int fib_case() =
   let n = read(int) in
-  write(fibo(n))
+  let r = fibo(n) in
+  write(r)
+
+fun int main() =
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  let tmp = fib_case() in
+  fib_case()

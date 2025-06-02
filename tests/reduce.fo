@@ -1,5 +1,18 @@
 fun int incr(int a, int b) = a + b
+fun int writeInt(int n) = write(n)
+
+fun int reduce_case([int] a) =
+  let r = reduce(incr, 0, a) in
+  writeInt(r)
 
 fun int main() =
-  let n = reduce(incr, 0, {1, 2, 3}) in
-  write(n)
+  let tmp = reduce_case({1, 2, 3}) in          
+  let tmp = reduce_case({10, 20}) in           
+  let tmp = reduce_case({0, 5, 3}) in                 
+  let tmp = reduce_case({5}) in                
+  let tmp = reduce_case({4, 4, 4, 4}) in      
+  let tmp = reduce_case({100, 200, 300}) in     
+  let tmp = reduce_case({0, 0, 0}) in           
+  let tmp = reduce_case({1, 1, 1, 1, 1}) in     
+  let tmp = reduce_case({2, 4, 6, 8}) in        
+  reduce_case({9, 5, 1})                       

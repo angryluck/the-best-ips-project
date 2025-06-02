@@ -8,5 +8,9 @@ fun int main() =
   let tmp = map(write_bool, replicate(2, false)) in
   let tmp = map(write_char, replicate(4,'a')) in
   let tmp = map(write_char, replicate(0,'k')) in
-  let tmp = write(replicate(5,'x')) in
+  let tmp = map(write_char, replicate(5,'x')) in
+  let tmp = map(write_int, replicate(2, 1)) in
+  let tmp = map(write_int, replicate(6, 0)) in
+  let tmp = map(write_bool, replicate(4, false)) in
+  let tmp = write(replicate(3, 'z')) in
   0
