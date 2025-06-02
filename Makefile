@@ -1,5 +1,5 @@
 all:
-	dotnet build -v n Fasto
+	dotnet build -v d Fasto
 
 test:   
 	make clean
