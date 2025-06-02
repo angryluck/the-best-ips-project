@@ -17,11 +17,21 @@ type Propagatee =
 type VarTable = SymTab.SymTab<Propagatee>
 
 // Following Inlining module
-let mutable var_suffix = 0
+// let mutable var_suffix = 0
+// let addUniqueSuffix name =
+//     var_suffix <- var_suffix + 1
+//     // Not I, conflated with inlining moduele...
+// name + "_VAR" + string var_suffix
 
-let addUniqueSuffix name =
-    var_suffix <- var_suffix + 1
-    name + "_I" + string var_suffix
+
+// Removes a binding from the tables, and replaces it with a new. Used for where
+// a given variable currently is pointing to. I.e let a = 2 in let a = 3 in a,
+// could trigger the vtable updates: (a:= a1, a1:=2) -> (a:= a2, a2:=3, a1:=2)
+// let updatePointer (name: string) (new_binding: string) (vtable: VarTable) =
+// SymTab.bind name (VarProp new_binding) (SymTab.remove name vtable)
+
+
+
 
 let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
     match e with
@@ -29,6 +39,7 @@ let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
         cases for variables, array indexing, and let-bindings. *)
     | Var(name, pos) ->
         match SymTab.lookup name vtable with
+        // Give all non_bound variables a unique name, to aid with let-problems
         | None -> Var(name, pos)
         | Some(ConstProp value) -> Constant(value, pos)
         | Some(VarProp newname) -> Var(newname, pos)
@@ -54,51 +65,76 @@ let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
                 Should probably do the same as the `Var` case, for
                 the array name, and optimize the index expression `ei` as well.
             *)
-    // failwith "Unimplemented copyConstPropFold for Index"
+    // Idea: Give all bindings a new name, and then update that current
+    // variable-name to point to that new name.
     | Let(Dec(name, def, decpos), body, pos) ->
-        // Shadow old name, to reduce risk of accidentally using it
-        // let name = addUniqueSuffix name
-        let existing_variable = SymTab.lookup name vtable
+        // For def, new variable name shouldn't be propogated
+        let def' = copyConstPropFoldExp vtable def
+        // let unique_name = addUniqueSuffix name
 
-        match existing_variable with
-        | Some _ ->
-            // let body' = copyConstPropFoldExp vtable body
-            Let(Dec(name, def, decpos), body, pos)
-        | None ->
-            let def' = copyConstPropFoldExp vtable def
-
-            match def' with
-            | Var(var_name, _) ->
-                let vtable' = SymTab.bind name (VarProp var_name) vtable
-                copyConstPropFoldExp vtable' body
-            (* TODO project task 3:
-                        Hint: I have discovered a variable-copy statement `let x = a`.
-                              I should probably record it in the `vtable` by
-                              associating `x` with a variable-propagatee binding,
-                              and optimize the `body` of the let.
-                    *)
-            | Constant(value, _) ->
-                let vtable' = SymTab.bind name (ConstProp value) vtable
-                copyConstPropFoldExp vtable' body
-            (* TODO project task 3:
+        match def' with
+        | Constant(value, _) ->
+            // let a = 2 adds [a:=a1, a1:=2], and removes any old a-binding
+            // let vtable' = SymTab.bind unique_name (ConstProp value) vtable
+            // let vtable'' = SymTab.bind name (VarProp unique_name) vtable'
+            let vtable = SymTab.bind name (ConstProp value) vtable
+            let body' = copyConstPropFoldExp vtable body
+            // let body' = copyConstPropFoldExp vtable'' body
+            Let(Dec(name, def', decpos), body', pos)
+        // let vtable' = SymTab.bind new_name (ConstProp value) vtable
+        // let vtable'' = update name (VarProp new_name) vtable'
+        // copyConstPropFoldExp vtable'' body
+        (* TODO project task 3:
                         Hint: I have discovered a constant-copy statement `let x = 5`.
                               I should probably record it in the `vtable` by
                               associating `x` with a constant-propagatee binding,
                               and optimize the `body` of the let.
                     *)
-            | Let(Dec(name2, def2, decpos2), body2, pos2) ->
-                // let name2 = addUniqueSuffix(name2)
-                let last_let = Let(Dec(name, body2, pos2), body, pos)
-                Let(Dec(name2, def2, decpos2), last_let, pos)
-            // let exp = Let (Dec (name2, def2, decpos2), )
-            // let def2' = copyConstPropFoldExp vtable def2
-            // Before:
-            // let name = (let name2 = def2 in body2) in body
-            // After:
-            // let name2 = def2 in  let name = body2 in body
+        | Var(var_name, _) ->
+            // Look one level deeper to find unique identifer. I.e., with table
+            // [a:=a1, a1:=2] and "let b = a" we find that a:=a1, and then add
+            // get vtable [b:=b2, b2:=a1, a:=a1, a1:=2]
+            // If 'a' in this is not bound to anything, it should be an error,
+            // so just go to the default case.
+            let vtable = SymTab.bind name (VarProp var_name) vtable
+            let body' = copyConstPropFoldExp vtable body
+            // let body' = copyConstPropFoldExp vtable'' body
+            Let(Dec(name, def', decpos), body', pos)
+
+        //     match SymTab.lookup var_name vtable with
+        //         | Some(VarProp var_bind) ->
+        //             let vtable' = SymTab.bind unique_name (VarProp var_bind) vtable
+        //             let vtable'' = SymTab.bind name (VarProp unique_name) vtable'
+        //             let body' = copyConstPropFoldExp vtable'' body
+        //             Let(Dec(name, def', decpos), body', pos)
+        //
+        //         | _ ->
+        //             // Ideally this shouldn't be able to happen (See Constant
+        //             // case above), but just  be sure, go to the default case
+        //             // below if it does
+        //             let body' = copyConstPropFoldExp vtable body
+        //             Let(Dec(name, def', decpos), body', pos)
+        // (* TODO project task 3:
+        //                 Hint: I have discovered a variable-copy statement `let x = a`.
+        //                       I should probably record it in the `vtable` by
+        //                       associating `x` with a variable-propagatee binding,
+        //                       and optimize the `body` of the let.
+        //             *)
+
+        | Let(Dec(name2, def2, decpos2), body2, pos2) ->
+            // let name2 = addUniqueSuffix(name2)
+            let last_let = Let(Dec(name, body2, pos2), body, pos)
+            let full_let = Let(Dec(name2, def2, decpos2), last_let, pos)
+            copyConstPropFoldExp vtable full_let
+        // let exp = Let (Dec (name2, def2, decpos2), )
+        // let def2' = copyConstPropFoldExp vtable def2
+        // Before:
+        // let name = (let name2 = def2 in body2) in body
+        // After:
+        // let name2 = def2 in  let name = body2 in body
 
 
-            (* TODO project task 3:
+        (* TODO project task 3:
                         Hint: this has the structure
                                 `let y = (let x = e1 in e2) in e3`
                         Problem is, in this form, `e2` may simplify
@@ -111,10 +147,10 @@ let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
                         but beware that x might also occur in e3, in the
                         original expression.
                     *)
-            // failwith "Unimplemented copyConstPropFold for Let with Let"
-            | _ -> (* Fallthrough - for everything else, do nothing *)
-                let body' = copyConstPropFoldExp vtable body
-                Let(Dec(name, def', decpos), body', pos)
+        // failwith "Unimplemented copyConstPropFold for Let with Let"
+        | _ -> (* Fallthrough - for everything else, do nothing *)
+            let body' = copyConstPropFoldExp vtable body
+            Let(Dec(name, def', decpos), body', pos)
 
     | Times(e1, e2, pos) ->
         let e1' = copyConstPropFoldExp vtable e1
@@ -241,18 +277,21 @@ let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
         match e1', e2' with
         | Constant(BoolVal a, _), Constant(BoolVal b, _) -> Constant(BoolVal(a || b), pos)
         | _ -> Or(e1', e2', pos)
+
     | Not(e0, pos) ->
         let e0' = copyConstPropFoldExp vtable e0
 
         match e0' with
         | Constant(BoolVal a, _) -> Constant(BoolVal(not a), pos)
         | _ -> Not(e0', pos)
+
     | Negate(e0, pos) ->
         let e0' = copyConstPropFoldExp vtable e0
 
         match e0' with
         | Constant(IntVal x, _) -> Constant(IntVal(-x), pos)
         | _ -> Negate(e0', pos)
+
     | Read(t, pos) -> Read(t, pos)
     | Write(e0, t, pos) -> Write(copyConstPropFoldExp vtable e0, t, pos)
 

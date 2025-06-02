@@ -1,0 +1,9 @@
+fun int shadow(int a) =
+  let b = a in
+  let a = 4 in
+  b + a// Should return input + 4
+
+fun int main() =
+  let tmp = write(shadow(7)) in
+  write(shadow(~20))
+

@@ -1,0 +1,31 @@
+fun int main() =
+  let x = (let x = 2 in (let x = 3 in x+8)) in
+  // Two below should be equivalent
+  let tmp = write(x) in
+  let y = 
+    (let y =
+      (let y =
+	(let y =
+	  (let y = 27 in y)
+	in y+2) 
+      in y-17)
+    in y*2) 
+  in
+  let tmp = write(y) in
+  // Should be same as above
+  let z = let z = 27 in let z = z+2 in let z = z-17 in z*2 in
+  let tmp = write(z) in 
+  // let y = (let y = 2 in y+3) in 
+  // write(y)
+  let a = 2 in
+  let b = a in
+  let a = 4 in 
+  // Should be 2 + 4
+  let tmp = write(a+b) in
+  let a = 7 in // a=7
+  let b = a+7 in // b = 14
+  let b = 4 in  // b = 4
+  let a = b+2 in // a = 6
+  let a = a+b in // a = 10
+  let tmp = write (a+b) in // 14
+  0

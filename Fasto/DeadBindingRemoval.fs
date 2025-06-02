@@ -61,9 +61,9 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
         let (ios, uses, es') = unzip3 (List.map removeDeadBindingsInExp es)
         (anytrue ios, List.fold SymTab.combine (SymTab.empty ()) uses, ArrayLit(es', t, pos))
     (* TODO: Task 3: implement the cases of `Var`, `Index` and `Let` expressions below *)
- //Idk, doesnt seem optimized to me... Return () instead? Seems wrong...
+    //Idk, doesnt seem optimized to me... Return () instead? Seems wrong...
     // | Var(name, pos) -> (false, SymTab.fromList [ (name, ()) ], Var(name, pos))
-    | Var(name, pos) -> (false, recordUse name (SymTab.empty ()) , Var(name, pos))
+    | Var(name, pos) -> (false, recordUse name (SymTab.empty ()), Var(name, pos))
     (* Task 3, Hints for the `Var` case:
                   - 1st element of result tuple: can a variable name contain IO?
                   - 2nd element of result tuple: you have discovered a name, hence
@@ -105,22 +105,32 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
          List.fold SymTab.combine (SymTab.empty ()) uses,
          Apply(fname, args', pos))
     | Index(name, ei, t, pos) ->
-        let (ios, uses, ei') = removeDeadBindingsInExp ei
-        (ios, recordUse name uses, Index(name, ei', t, pos))
-        (* Task 3, `Index` case: is similar to the `Var` case, except that,
+        let ios, uses, ei' = removeDeadBindingsInExp ei
+        ios, recordUse name uses, Index(name, ei', t, pos)
+
+    (* Task 3, `Index` case: is similar to the `Var` case, except that,
                         additionally, you also need to recursively optimize the index
                         expression `ei` and to propagate its results (in addition
                         to recording the use of `name`).
             *)
-        // failwith "Unimplemented removeDeadBindingsInExp for Index"
+    // failwith "Unimplemented removeDeadBindingsInExp for Index"
 
     | Let(Dec(name, def, decpos), body, pos) ->
-        let (def_ios, def_uses, def') = removeDeadBindingsInExp def
-        let (body_ios, body_uses, body') = removeDeadBindingsInExp body
-        let uses = SymTab.combine def_uses body_uses
-        (def_ios || body_ios, uses, Let(Dec(name, def', decpos), body', pos))
+        let def_ios, def_uses, def' = removeDeadBindingsInExp def
+        let body_ios, body_uses, body' = removeDeadBindingsInExp body
+        let ios = def_ios || body_ios
+        let uses = SymTab.combine def_uses (SymTab.remove name body_uses)
 
-        (* Task 3, Hints for the `Let` case:
+        match isUsed name body_uses || def_ios with
+        | false -> body_ios, body_uses, body'
+        | true -> ios, uses, Let(Dec(name, def', decpos), body', pos)
+    // match body_uses_name, def_ios  with
+    // | false, false ->  body_ios, body_uses, body'
+    // | _ ->  def_ios || body_ios, uses, Let(Dec(name, def', decpos), body', pos)
+
+    // (def_ios || body_ios, uses, Let(Dec(name, def', decpos), body', pos))
+
+    (* Task 3, Hints for the `Let` case:
                   - recursively process the `def` and `body` subexpressions
                     of the Let-binding
                   - a Let-binding contains IO if at least one of `def`
@@ -143,7 +153,7 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
                     Let-expression.
 
             *)
-        // failwith "Unimplemented removeDeadBindingsInExp for Let"
+    // failwith "Unimplemented removeDeadBindingsInExp for Let"
     | Iota(en, pos) ->
         let (io, uses, en') = removeDeadBindingsInExp en
         (io, uses, Iota(en', pos))

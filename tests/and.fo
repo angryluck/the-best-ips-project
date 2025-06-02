@@ -1,14 +1,8 @@
-fun bool write_bool(bool b) =
-  write(b)
+fun bool write_bool(bool b) = write(b)
 
 fun bool main() =
-  let tmp1 = write(true && false) in
-  let tmp2 = write(false && true) in
-  let tmp3 = write(false && false) in
-  let tmp4 = write(true && true) in
-  let tmp5 = write(3/2 == 1 && true) in
-  // let x0 = write_nl(3 / 2 == 1) in
-  // let x1 = write_nl(~3 / 2 == ~2) in
-  // let x2 = write_nl(3 /~2 == ~2) in
-  // let x3 = write_nl(~3 /~2 == 1) in
-  write_nl(x0 && not x1 && not x2 && x3)
+  let x0 = write(true && false) in
+  let x1 = write(false && true) in
+  let x2 = write(false && false) in
+  let x3 = write(true && true) in
+  write_bool(not x0 && not x1 && not x2 && x3)
