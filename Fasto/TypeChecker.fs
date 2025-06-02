@@ -326,8 +326,6 @@ and checkExp  (ftab : FunTable)
             match arr_type with
               | Array t -> t
               | _ -> reportTypeWrongKind "second argument of filter" "array" arr_type pos
-        // let (f', f_res_type, f_arg_type) = skid 
-
         let (f', f_arg_type) =
             match checkFunArg ftab vtab pos f with
               | (f', Bool, [a1]) -> (f',  a1)
