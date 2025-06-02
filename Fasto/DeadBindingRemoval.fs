@@ -104,6 +104,7 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
         (anytrue ios || not (List.contains fname [ "ord"; "chr" ]),
          List.fold SymTab.combine (SymTab.empty ()) uses,
          Apply(fname, args', pos))
+
     | Index(name, ei, t, pos) ->
         let ios, uses, ei' = removeDeadBindingsInExp ei
         ios, recordUse name uses, Index(name, ei', t, pos)

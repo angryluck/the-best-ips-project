@@ -55,7 +55,6 @@ let rec copyConstPropFoldExp (vtable: VarTable) (e: TypedExp) =
 
         match SymTab.lookup name vtable with
         | None -> Index(name, ei', t, pos)
-        // Idk if it is even valid to bind an array to a constant...
         | Some(ConstProp value) ->
             match value, ei' with
             | ArrayVal(list, _), Constant(IntVal i, _) -> Constant(list[i], pos)
