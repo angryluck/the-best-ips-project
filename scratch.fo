@@ -1,7 +1,0 @@
-fun int write_int(int x) = write(x)
-fun char write_char(char x) = write(x)
-fun bool write_bool(bool x) = write(x)
-
-fun [int] main() =
-  let c = 2 in
-  let a = b in let b = c in write(a)
