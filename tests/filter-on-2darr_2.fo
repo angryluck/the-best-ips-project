@@ -1,0 +1,29 @@
+fun int write_int(int x) = write(x)
+fun [int]  write_1darr([int] x) = map(write_int, x)
+fun [[int]] write_2darr([[int]] x) = map(write_1darr, x)
+
+fun bool even(int a) =
+  (a / 2) * 2 == a
+
+fun [[int]] gen_filtered(int n) =
+  let a2d = map(fn [int](int i) => iota(i+2), iota(n)) in
+  filter(fn bool ([int] a) =>
+    let r = reduce(fn int(int x, int y) => x + y, 0, a) in
+    even(r), a2d)
+
+fun int main() =
+  let n1 = read(int) in
+  let tmp1 = write_2darr(gen_filtered(n1)) in
+
+  let n2 = read(int) in
+  let tmp2 = write_2darr(gen_filtered(n2)) in
+
+  let n3 = read(int) in
+  let tmp3 = write_2darr(gen_filtered(n3)) in
+
+  let n4 = read(int) in
+  let tmp4 = write_2darr(gen_filtered(n4)) in
+
+  let n5 = read(int) in
+  let tmp5 = write_2darr(gen_filtered(n5)) in
+  0

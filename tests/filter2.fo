@@ -1,0 +1,28 @@
+fun int write_int(int x) = write(x)
+
+fun [int] write_int_arr([int] x) = map(write_int, x)
+
+fun bool isMul16(int a) =
+  (a / 16) * 16 == a
+
+fun [int] process(int n) =
+  let x = filter(fn bool (int a) => a == (a / 2) * 2, iota(n)) in
+  let y = map(fn int (int a) => a * a, x) in
+  filter(isMul16, y)
+
+fun int main() =
+  let n1 = read(int) in
+  let tmp1 = write_int_arr(process(n1)) in
+
+  let n2 = read(int) in
+  let tmp2 = write_int_arr(process(n2)) in
+
+  let n3 = read(int) in
+  let tmp3 = write_int_arr(process(n3)) in
+
+  let n4 = read(int) in
+  let tmp4 = write_int_arr(process(n4)) in
+
+  let n5 = read(int) in
+  let tmp5 = write_int_arr(process(n5)) in
+  0
