@@ -1,2 +1,6 @@
 fun int main() =
-    write(let x = 2; y=3 in x+y)
+    let tmp1 = write(let x = 2; y = 3 in x+y) in
+    let tmp2 = write(let a = 3; b = 10 in a*b) in 
+    let tmp3 = write(let x = 4; y = x + 1 in y*2) in
+    let tmp4 = write(let a = true; b = if a then 1 else 0 in b + 5) in
+    0 

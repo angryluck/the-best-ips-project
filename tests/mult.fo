@@ -1,0 +1,12 @@
+fun int mult() =
+  let n = read(int) in
+  let d = read(int) in
+  write(n*d)
+
+fun int main() =
+  let tmp = mult() in
+  let tmp = mult() in
+  let tmp = mult() in
+  let tmp = mult() in
+  let tmp = mult() in
+  mult()
