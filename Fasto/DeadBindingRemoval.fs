@@ -62,7 +62,8 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
         (anytrue ios, List.fold SymTab.combine (SymTab.empty ()) uses, ArrayLit(es', t, pos))
     (* TODO: Task 3: implement the cases of `Var`, `Index` and `Let` expressions below *)
  //Idk, doesnt seem optimized to me... Return () instead? Seems wrong...
-    | Var(name, pos) -> (false, SymTab.fromList [ (name, ()) ], Var(name, pos))
+    // | Var(name, pos) -> (false, SymTab.fromList [ (name, ()) ], Var(name, pos))
+    | Var(name, pos) -> (false, recordUse name (SymTab.empty ()) , Var(name, pos))
     (* Task 3, Hints for the `Var` case:
                   - 1st element of result tuple: can a variable name contain IO?
                   - 2nd element of result tuple: you have discovered a name, hence
@@ -114,9 +115,10 @@ let rec removeDeadBindingsInExp (e: TypedExp) : (bool * DBRtab * TypedExp) =
         // failwith "Unimplemented removeDeadBindingsInExp for Index"
 
     | Let(Dec(name, def, decpos), body, pos) ->
-        let (iosd, usesd, def') = removeDeadBindingsInExp def
-        let (iosb, usesb, body') = removeDeadBindingsInExp body
-        (iosd || iosb, SymTab.empty () , Let(Dec(name, def', decpos), body', pos))
+        let (def_ios, def_uses, def') = removeDeadBindingsInExp def
+        let (body_ios, body_uses, body') = removeDeadBindingsInExp body
+        let uses = SymTab.combine def_uses body_uses
+        (def_ios || body_ios, uses, Let(Dec(name, def', decpos), body', pos))
 
         (* Task 3, Hints for the `Let` case:
                   - recursively process the `def` and `body` subexpressions
