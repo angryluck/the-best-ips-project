@@ -794,8 +794,6 @@ let rec compileExp  (e      : TypedExp)
       @ loop_scan
       @ loop_footer
 
-      // failwith "Unimplemented code generation of scan"
-
 and applyFunArg ( ff     : TypedFunArg
                 , args   : reg list
                 , vtable : VarTable
