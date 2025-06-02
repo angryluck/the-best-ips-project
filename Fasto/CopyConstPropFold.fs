@@ -58,13 +58,13 @@ let rec copyConstPropFoldExp (vtable : VarTable)
         | Let (Dec (name, def, decpos), body, pos) ->
           // Shadow old name, to reduce risk of accidentally using it
           // let name = addUniqueSuffix name 
-          let def' = copyConstPropFoldExp vtable def
           let existing_variable = SymTab.lookup name vtable
           match existing_variable with 
             | Some _ -> 
-              let body' = copyConstPropFoldExp vtable body
-              Let (Dec (name, def', decpos), body', pos)
+              // let body' = copyConstPropFoldExp vtable body
+               Let (Dec (name, def, decpos), body, pos)
             | None -> 
+               let def' = copyConstPropFoldExp vtable def
                match def' with
                | Var (var_name, pos) ->
                  let vtable' = SymTab.bind name (VarProp var_name) vtable
