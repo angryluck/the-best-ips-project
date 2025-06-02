@@ -159,9 +159,7 @@ Exp : NUM            { Constant (IntVal (fst $1), snd $1) }
 //     | LetInExps         {Let $1}
     //| LET ID EQ Exp IN Exp
     //                 { Let (Dec (fst $2, $4, $3), $6, $1) }
-    | LET Decls IN Exp //TILFØJET HER
-    { List.foldBack (fun d acc -> Let(d, acc, $1)) $2 $4 }//TILFØJET HER
-//     | LET ID EQ EXP SEMICOLON Exp
+    | LET Decls IN Exp { List.foldBack (fun d acc -> Let(d, acc, $1)) $2 $4 }
     | ID LBRACKET Exp RBRACKET
                      { Index (fst $1, $3, (), $2) }
 ;
