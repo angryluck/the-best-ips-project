@@ -1,18 +1,17 @@
 fun int incr(int a, int b) = a + b
 fun int writeInt(int n) = write(n)
 
-fun int scan_case([int] a) =
+fun [int] scan_case([int] a) =
   let b = scan(incr, 0, a) in
   map(writeInt, b)
 
-fun int main() =
-  let tmp = scan_case({1, 2, 3}) in          
-  let tmp = scan_case({10, 20}) in            
-  let tmp = scan_case({}) in                  
-  let tmp = scan_case({5}) in                 
-  let tmp = scan_case({4, -4, 4, -4}) in       
-  let tmp = scan_case({100, 200, 300}) in      
-  let tmp = scan_case({0, 0, 0}) in            
-  let tmp = scan_case({1, 1, 1, 1, 1}) in      
-  let tmp = scan_case({2, 4, 6, 8}) in         
-  scan_case({9, -3, 3})                        
+fun [int] main() =
+  let tmp = scan_case({1, 2, 3}) in
+  let tmp = scan_case({10, 20}) in
+  let tmp = scan_case({5}) in
+  let tmp = scan_case({4, ~4, 4, ~4}) in
+  let tmp = scan_case({100, 200, 300}) in
+  let tmp = scan_case({0, 0, 0}) in
+  let tmp = scan_case({1, 1, 1, 1, 1}) in
+  let tmp = scan_case({2, 4, 6, 8}) in
+  scan_case({9, ~3, 3})
